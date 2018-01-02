@@ -5,7 +5,7 @@
 
 #### Version 0.1.0
 > 카카오톡 플러스 친구를 맺으면 현재 시간 특정 지하철 역의 혼잡한 정도를 알 수 있습니다.
-![]()
+![](https://github.com/parksjin01/Kor_subway/blob/master/Example.jpeg?raw=true)
 
 #### Dependency
 > Flask
