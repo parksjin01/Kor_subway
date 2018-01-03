@@ -4,7 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 import socket
-from flask import Flask, render_template, request
+from flask import Flask, request
 import threading
 import os
 import time
@@ -14,7 +14,7 @@ SERVER_IP = ""
 SERVER_PORT = ""
 
 def run_model():
-    time.sleep(3)
+    time.sleep(1)
     os.system('./model')
 
 with open("Setting.ini", 'r') as f:
@@ -40,14 +40,13 @@ line3 = {"수서": 339, "일원": 338, "대청": 337, "학여울": 336, "대치"
 
 line4 = {"당고개": 409, "상계": 410, "노원": 411, "창동": 412, "쌍문": 413, "수유": 414, "미아": 415, "미아사거리": 416,
          "길음": 417, "성신여대입구": 418, "한성대입구": 419, "혜화": 420, "동대문": 421, "동대문역사문화공원": 422, "충무로": 423,
-         "명동": 424, "회현": 425, "서울역": 426, "숙대입구": 427, "삼각지": 428, "신용산": 429, "이촌": 430, "동작": 431,
+         "명동": 424, "회현": 425, "서울": 426, "숙대입구": 427, "삼각지": 428, "신용산": 429, "이촌": 430, "동작": 431,
          "총신대입구": 432, "사당": 433, "남태령": 434,
 }
 
 thread = threading.Thread(target=run_model)
 thread.start()
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print 1
 sock.bind(("127.0.0.1", 11120))
 sock.listen(5)
 
@@ -64,6 +63,26 @@ print client.recv(1000)
 print client.recv(1000)
 print client.recv(1000)
 print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+print client.recv(1000)
+
 
 app = Flask(__name__)
 
@@ -81,13 +100,13 @@ def hello_world():
         if input_value[0] == "4":
             input_value[1] = str(line4[input_value[1]])
         client.send(' '.join(input_value))
-        busy = client.recv(100)
-        table = "<table>" \
-                "<tr><th>Line</th><th>Station</th><th>Time</th>" \
-                "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" \
-                "</table>"
+        busy = 1111
+        # table = "<table>" \
+        #         "<tr><th>Line</th><th>Station</th><th>Time</th>" \
+        #         "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>" \
+        #         "</table>"
 
-    return "111"
+    return busy
 
 @app.route('/keyboard', methods = ['GET', 'POST'])
 def requests():
@@ -103,10 +122,10 @@ def response():
         fmt = '%d호선 %s역: %s'
         cur_time = ':'.join(time.ctime().split(' ')[4].split(':')[:2])
         line = {}
-        line.update(line1)
-        line.update(line2)
-        line.update(line3)
-        line.update(line4)
+        line['line1'] = line1
+        line['line2'] = line2
+        line['line3'] = line3
+        line['line4'] = line4
         res = {}
 
         if input_value == '도움말':
@@ -118,15 +137,16 @@ def response():
             res['message'] = {'text':message}
             return json.dumps(res)
         else:
-            for key, value in line.iteritems():
-                if input_value in key:
-                    client.send(str(value/100)+' '+str(value)+' '+cur_time)
-                    busy = client.recv(100).strip('\n')
-                    if busy == 'Busy':
-                        message += fmt %(value/100, key, '혼잡(이용객 2000명 이상)')
-                    else:
-                        message += fmt % (value/100, key, '한적(이용객 2000명 미만)')
-                    message += '\n'
+            for tmp_line in line.values():
+                for key, value in tmp_line.iteritems():
+                    if input_value in key:
+                        client.send(str(value/100)+' '+str(value)+' '+cur_time)
+                        busy = client.recv(100).strip('\n')
+                        if busy == 'Busy':
+                            message += fmt %(value/100, key, '혼잡(이용객 2000명 이상)')
+                        else:
+                            message += fmt % (value/100, key, '한적(이용객 2000명 미만)')
+                        message += '\n'
             # if input_value[0] == "1":
             #     input_value[1] = str(line1[input_value[1]])
             # if input_value[0] == "2":
@@ -138,7 +158,7 @@ def response():
             # client.send(' '.join(input_value))
             # busy = client.recv(100)
             res['message'] = {'text':message}
-            res['message_button'] = {'label':'만족'}
+            # res['message_button'] = {'label':'만족'}
             return json.dumps(res)
     return 1111
 

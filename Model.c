@@ -203,10 +203,21 @@ int main(void)
     char write_buf[100] = {0};
     char read_buf[100] = {0};
 
+    double tp = 0;
+    double fp = 0;
+    double fn = 0;
+    double precision = 0.0;
+    double recall = 0.0;
+
+    char PATH[100] = {0};
+    char tmp[100] = {0};
+
     int sockfd = 0, n = 0;
     char recvBuff[1024];
     struct sockaddr_in serv_addr;
     memset(recvBuff, '0',sizeof(recvBuff));
+
+    printf("!");
 
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -231,15 +242,28 @@ int main(void)
 
     sock_send(sockfd, write_buf);
 
-    FILE *fp_in = fopen("/Users/Knight/Desktop/input.csv", "r");
-    FILE *fp_out = fopen("/Users/Knight/Desktop/output.csv", "r");
+    FILE *fps = fopen("./Setting.ini", "r");
+    while(1) {
+        if(feof(fps)){
+                break;
+            }
+        fscanf(fps, "%s", PATH);
+    }
+    fclose(fps);
+    strcpy(tmp, PATH);
+    strcat(tmp, "training_set(input).csv");
+    FILE *fp_in = fopen(tmp, "r");
+    strcpy(tmp, PATH);
+    strcat(tmp, "training_set(output).csv");
+    FILE *fp_out = fopen(tmp, "r");
+    printf("!!!");
 
     Model *model = malloc(sizeof(Model));
 
     srand(time(NULL));
 
     model->input_size = 3;
-    model->hidden_size = 3;
+    model->hidden_size = 16;
     model->output_size = 1;
     model->training_set = 19992;
     model->learning_rate = 0.1;
@@ -273,13 +297,19 @@ int main(void)
         }
     }
 
-    for (int z = 0; z < 100; z++) {
+    for (int z = 0; z < 300; z++) {
         error_rate = 0;
         if (z%10 == 0) {
             idx = 0;
             correct = 0;
-            fp_in = fopen("/Users/Knight/Desktop/test_input.csv", "r");
-            fp_out = fopen("/Users/Knight/Desktop/test_output.csv", "r");
+            tp = 0;
+            fp = 0;
+            strcpy(tmp, PATH);
+            strcat(tmp, "test_set(input).csv");
+            fp_in = fopen(tmp, "r");
+            strcpy(tmp, PATH);
+            strcat(tmp, "test_set(output).csv");
+            fp_out = fopen(tmp, "r");
             while (1) {
                 idx += 1;
                 for (int i=0; i < 3; i ++) {
@@ -287,6 +317,15 @@ int main(void)
                 }
                 fscanf(fp_out, "%lf", &real_output[0]);
                 test(test_input, model, test_output);
+                if (round(test_output[0]) == 1.0)
+                {
+                    if (round(test_output[0]) == real_output[0])
+                        tp += 1;
+                    else
+                        fp += 1;
+                }
+                if (round(test_output[0]) == 0.0 && real_output[0] == 1.0)
+                    fn += 1;
                 if (round(test_output[0]) == real_output[0]) {
                     correct += 1;
                 }
@@ -303,7 +342,10 @@ int main(void)
         }
 
         if (z%10 == 0) {
-            snprintf(write_buf, 100, "%lf %lf\n",correct/idx, error_rate/model->training_set);
+            precision = tp/(tp+fp);
+            recall = tp/(tp+fn);
+
+            snprintf(write_buf, 100, "%lf %lf %lf\n",correct/idx, error_rate/model->training_set, 2*(precision*recall)/(precision+recall));
             sock_send(sockfd, write_buf);
             fclose(fp_in);
             fclose(fp_out);
@@ -314,8 +356,12 @@ int main(void)
     printf("Training finished, Testing start\n");
     idx = 0;
     correct = 0;
-    fp_in = fopen("/Users/Knight/Desktop/test_input.csv", "r");
-    fp_out = fopen("/Users/Knight/Desktop/test_output.csv", "r");
+    strcpy(tmp, PATH);
+    strcat(tmp, "test_set(input).csv");
+    fp_in = fopen(tmp, "r");
+    strcpy(tmp, PATH);
+    strcat(tmp, "test_set(output).csv");
+    fp_out = fopen(tmp, "r");
     while (1) {
         idx += 1;
         for (int i=0; i < 3; i ++) {
